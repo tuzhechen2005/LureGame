@@ -1,0 +1,23 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Games",
+  "Description": "First-person shore fishing prototype",
+  "Modules": [
+    {
+      "Name": "LureGame",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Enabled": true,
+      "Name": "PythonScriptPlugin"
+    },
+    {
+      "Enabled": true,
+      "Name": "EditorScriptingUtilities"
+    }
+  ]
+}
