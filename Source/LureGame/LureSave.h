@@ -10,6 +10,11 @@ struct FCatchRecord {
  UPROPERTY() float Length=0;
  UPROPERTY() FString Date;
  UPROPERTY() FString Lure;
+ UPROPERTY() int32 Score=0;
+ UPROPERTY() float HookQuality=0;
+ UPROPERTY() float FightSeconds=0;
+ UPROPERTY() int32 SpotId=-1;
+ UPROPERTY() bool bTrophy=false;
 };
 UCLASS()
 class LUREGAME_API ULureSave : public USaveGame {
@@ -25,4 +30,9 @@ public:
  UPROPERTY() bool bFullscreen=false;
  UPROPERTY() int32 TotalCatches=0;
  UPROPERTY() float BestWeight=0;
+ UPROPERTY() int32 Experience=0;
+ UPROPERTY() TMap<FString,float> SpeciesBests;
+ UPROPERTY() int32 CompletedMilestones=0;
+ UPROPERTY() int32 CaughtSpots=0;
+ UPROPERTY() int32 TrophyCatches=0;
 };

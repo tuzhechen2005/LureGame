@@ -1,0 +1,5 @@
+{
+  "note": "2026-09-13 user feedback: turn the right hand farther onto its side, 20 degrees from the previous -30-degree pose.",
+  "lift_m": [0.0, 0.04, 0.28],
+  "axial_roll_degrees": {"r": -10, "l": -40}
+}

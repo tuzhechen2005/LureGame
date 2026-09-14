@@ -1,5 +1,6 @@
 ﻿#include "LureWorld.h"
 #include "CoveTerrain.h"
+#include "CoveEnvironment.h"
 #include "LureSave.h"
 #include "FishingVisuals.h"
 #include "Kismet/GameplayStatics.h"
@@ -11,6 +12,7 @@
 #include "Camera/CameraComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/StaticMeshActor.h"
+#include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/SkyLight.h"
 #include "Engine/ExponentialHeightFog.h"
@@ -22,7 +24,17 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
-namespace { bool IsTesting(){return FParse::Param(FCommandLine::Get(),TEXT("LureSmokeTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureInputTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureSessionTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"));} }
+namespace {
+bool IsTesting(){return FParse::Param(FCommandLine::Get(),TEXT("LureSmokeTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureInputTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureSessionTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureRigReview"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterCapture"));}
+void RecoverCatchBests(ULureSave* Save){
+ // Older saves have a journal but no per-species records or experience.
+ for(const FCatchRecord& Entry:Save->Journal){
+  if(Entry.Species.IsEmpty())continue;
+  float& Best=Save->SpeciesBests.FindOrAdd(Entry.Species);
+  Best=FMath::Max(Best,Entry.Weight);Save->BestWeight=FMath::Max(Save->BestWeight,Entry.Weight);
+ }
+}
+}
 FString ALurePawn::LureName() const {const TCHAR* N[]={TEXT("悬浮米诺"),TEXT("软虫"),TEXT("旋转亮片"),TEXT("水面波爬"),TEXT("铅头钩")};return N[LureType%5];}
 FString ALurePawn::WeatherName() const {const TCHAR* N[]={TEXT("晴朗"),TEXT("阴天"),TEXT("薄雾"),TEXT("小雨")};return N[Weather%4];}
 FString ALurePawn::TimeName() const {const TCHAR* N[]={TEXT("清晨 06:30"),TEXT("午后 14:00"),TEXT("黄昏 18:20"),TEXT("夜晚 21:00")};return N[TimeOfDay%4];}
@@ -30,9 +42,11 @@ FString ALurePawn::SpotName() const {const TCHAR* N[]={TEXT("沉木湾"),TEXT("�
 void ALurePawn::SessionInit(){
  if(!IsTesting())SaveData=Cast<ULureSave>(UGameplayStatics::LoadGameFromSlot(TEXT("WildwaterV1"),0));
  if(!SaveData)SaveData=NewObject<ULureSave>(this);
+ RecoverCatchBests(SaveData);
  Sensitivity=FMath::Clamp(SaveData->Sensitivity,.04f,.4f);Volume=FMath::Clamp(SaveData->Volume,0.f,1.f);Weather=FMath::Clamp(SaveData->Weather,0,3);TimeOfDay=FMath::Clamp(SaveData->TimeOfDay,0,3);Spot=FMath::Clamp(SaveData->Spot,0,2);Catches=SaveData->TotalCatches;{const float Y=Spot==0?0:(Spot==1?-1600:1600);SetActorLocation(FVector(-420,Y,Cove::Height(-420,Y)));}
  if(auto* Audio=LoadObject<USoundBase>(nullptr,TEXT("/Game/Audio/Ambient.Ambient")))AmbientAudio=UGameplayStatics::SpawnSound2D(this,Audio,Volume*.55f,1,0,nullptr,true,false);
  if(auto* Audio=LoadObject<USoundBase>(nullptr,TEXT("/Game/Audio/Reel.Reel"))){ReelAudio=UGameplayStatics::SpawnSound2D(this,Audio,0,1,0,nullptr,true,false);}
+ if(auto* Audio=LoadObject<USoundBase>(nullptr,TEXT("/Game/Audio/DragRun.DragRun"))){DragAudio=UGameplayStatics::SpawnSound2D(this,Audio,0,1,0,nullptr,true,false);}
  Rain=NewObject<UInstancedStaticMeshComponent>(this,TEXT("Rain"));Rain->SetupAttachment(RootComponent);Rain->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cylinder.Cylinder")));Rain->SetCollisionEnabled(ECollisionEnabled::NoCollision);Rain->SetCastShadow(false);Rain->RegisterComponent();
  for(int i=0;i<130;++i)Rain->AddInstance(FTransform(FRotator::ZeroRotator,FVector::ZeroVector,FVector(.003f,.003f,.25f)));
  if(!IsTesting() || FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"))){
@@ -51,10 +65,25 @@ void ALurePawn::SaveSession(){
 void ALurePawn::PlayCue(const TCHAR* Name){FString P=FString::Printf(TEXT("/Game/Audio/%s.%s"),Name,Name);if(auto* S=LoadObject<USoundBase>(nullptr,*P))UGameplayStatics::PlaySound2D(this,S,Volume*.7f);}
 void ALurePawn::RecordCatch(){
  if(!ActiveFish || !SaveData)return;
- FCatchRecord R;R.Species=ActiveFish->SpeciesName();R.Weight=ActiveFish->Weight;R.Length=ActiveFish->Body->Bounds.BoxExtent.X*2+10*ActiveFish->SizeFactor;R.Date=FDateTime::Now().ToString(TEXT("%Y-%m-%d %H:%M"));R.Lure=LureName();
+ FCatchRecord R;R.Species=ActiveFish->SpeciesName();R.Weight=ActiveFish->Weight;
+ const UStaticMesh* BodyMesh=ActiveFish->Body->GetStaticMesh();
+ R.Length=((BodyMesh?BodyMesh->GetBoundingBox().GetSize().X:40.f)+10.f)*ActiveFish->SizeFactor;
+ R.Date=FDateTime::Now().ToString(TEXT("%Y-%m-%d %H:%M"));R.Lure=LureName();
+ RecoverCatchBests(SaveData);
+ const float* PreviousBest=SaveData->SpeciesBests.Find(R.Species);
+ bNewSpecies=PreviousBest==nullptr;
+ bPersonalBest=PreviousBest && R.Weight>*PreviousBest+.005f;
+ R.HookQuality=FMath::Clamp(HookQuality,0.f,1.f);R.FightSeconds=FMath::Max(0.f,Fight.Time);
+ const float Control=Fight.Time>0?FMath::Clamp(Fight.CleanSeconds/Fight.Time,0.f,1.f):0.f;
+ const float Skill=R.HookQuality*.4f+Control*.6f;
+ CatchGrade=Skill>=.88f?TEXT("S 级"):(Skill>=.7f?TEXT("A 级"):(Skill>=.45f?TEXT("B 级"):TEXT("C 级")));
+ CatchScore=FMath::Max(0,FMath::RoundToInt(R.Weight*100+R.HookQuality*300+Control*400+FMath::Clamp(Fight.LineCondition,0.f,1.f)*100));
+ CatchXP=50+CatchScore/15+(bNewSpecies?75:0)+(bPersonalBest?50:0);R.Score=CatchScore;
+ SaveData->Experience+=CatchXP;SaveData->TotalCatches=Catches;
+ SaveData->SpeciesBests.FindOrAdd(R.Species)=FMath::Max(PreviousBest?*PreviousBest:0.f,R.Weight);
  SaveData->BestWeight=FMath::Max(SaveData->BestWeight,R.Weight);
  SaveData->Journal.Insert(R,0);if(SaveData->Journal.Num()>100)SaveData->Journal.SetNum(100);
- LastCatch=FString::Printf(TEXT("%s  ·  %.2f kg  ·  %.0f cm"),*R.Species,R.Weight,R.Length);SaveSession();PlayCue(TEXT("Catch"));
+ LastCatch=FString::Printf(TEXT("%s  ·  %.2f kg  ·  %.0f cm"),*R.Species,R.Weight,R.Length);SaveSession();PlayCue(TEXT("Trophy"));
 }
 void ALurePawn::MenuAction(const FString& A){
  if(A==TEXT("play")){
@@ -79,8 +108,19 @@ void ALurePawn::MenuAction(const FString& A){
  SaveSession();
 }
 void ALurePawn::ApplyEnvironment(){
+ // Clear, overcast, mist and light rain use distinct surface conditions.
+ const float WaveStrength[]={1.f,1.4f,.35f,2.2f};
+ const float WaterRoughness[]={.12f,.15f,.08f,.22f};
+ for(TActorIterator<ACoveEnvironment> I(GetWorld());I;++I){
+  auto* Material=Cast<UMaterialInstanceDynamic>(I->Water->GetMaterial(0));
+  if(!Material)Material=I->Water->CreateDynamicMaterialInstance(0);
+  if(Material){
+   Material->SetScalarParameterValue(TEXT("WaveStrength"),WaveStrength[Weather]);
+   Material->SetScalarParameterValue(TEXT("WaterRoughness"),WaterRoughness[Weather]);
+  }
+ }
  const float Pitch[]={-15.f,-58.f,-8.f,-25.f};const float Lux[]={30000.f,55000.f,12000.f,.12f};
- const FLinearColor Colors[]={FLinearColor(1,.8f,.58f),FLinearColor(1,.96f,.89f),FLinearColor(1,.5f,.23f),FLinearColor(.38f,.52f,1)};
+ const FLinearColor Colors[]={FLinearColor(1,.94f,.84f),FLinearColor(1,.98f,.95f),FLinearColor(1,.5f,.23f),FLinearColor(.38f,.52f,1)};
  for(TActorIterator<ADirectionalLight> I(GetWorld());I;++I){I->SetActorRotation(FRotator(Pitch[TimeOfDay],TimeOfDay==2?30:-95,0));I->GetLightComponent()->SetIntensity(Lux[TimeOfDay]*(Weather==0?1.f:.4f));I->GetLightComponent()->SetLightColor(Colors[TimeOfDay]);}
  for(TActorIterator<AStaticMeshActor> I(GetWorld());I;++I)if(I->Tags.Contains(TEXT("SkyDome"))){
   if(auto* M=Cast<UMaterialInstanceDynamic>(I->GetStaticMeshComponent()->GetMaterial(0))){
@@ -99,6 +139,7 @@ void ALurePawn::ApplyEnvironment(){
 void ALurePawn::UpdateEnvironment(float Dt){
  if(AmbientAudio)AmbientAudio->SetVolumeMultiplier(Volume*(Weather==3?.8f:.5f));
  if(ReelAudio)ReelAudio->SetVolumeMultiplier(Reeling && !bMenuOpen?Volume*.55f:0);
+ if(DragAudio && bMenuOpen)DragAudio->SetVolumeMultiplier(0);
  if(!Rain)return;Rain->SetVisibility(Weather==3);
  if(Weather==3){for(int i=0;i<130;++i){float X=FMath::Frac(i*.618f)*1000-500,Y=FMath::Frac(i*.414f)*1000-500,Z=FMath::Fmod(i*17.f-Clock*750,600.f);if(Z<0)Z+=600;FTransform T(FRotator(-12,0,0),GetActorLocation()+FVector(X,Y,Z),FVector(.002f,.002f,.26f));Rain->UpdateInstanceTransform(i,T,true,i==129,true);}}
 }
@@ -109,9 +150,24 @@ void ALurePawn::RunSessionTest(){
  MenuAction(TEXT("spot"));Check(Spot==1 && FMath::Abs(GetActorLocation().Y+1600)<1,TEXT("spot change moves player"));
  for(int i=0;i<100;++i)MenuAction(TEXT("sens+"));Check(Sensitivity<=.4f,TEXT("sensitivity capped"));
  for(int i=0;i<100;++i)MenuAction(TEXT("volume-"));Check(Volume==0,TEXT("volume floor"));
- ActiveFish=Fish[0];++Catches;RecordCatch();Check(SaveData->Journal.Num()==1 && SaveData->Journal[0].Weight>0,TEXT("catch journal records fish"));
+ ActiveFish=Fish[0];HookQuality=.9f;Fight.Time=42;Fight.CleanSeconds=33.6f;Fight.LineCondition=.85f;++Catches;RecordCatch();
+ Check(SaveData->Journal.Num()==1 && SaveData->Journal[0].Weight>0,TEXT("catch journal records fish"));
+ Check(bNewSpecies && !bPersonalBest && CatchXP>0 && CatchScore>0,TEXT("first species awards discovery and experience"));
+ const int32 FirstXP=SaveData->Experience;const float FirstWeight=ActiveFish->Weight;
+ SaveData->SpeciesBests.Empty();ActiveFish->Weight=FirstWeight*1.25f;++Catches;RecordCatch();
+ Check(!bNewSpecies && bPersonalBest && SaveData->Experience>FirstXP,TEXT("legacy journal retains discovery and recognizes a heavier personal best"));
+ ++Catches;RecordCatch();
+ Check(!bNewSpecies && !bPersonalBest,TEXT("equal weight cannot repeatedly claim a personal best"));
+ ActiveFish->Weight=FirstWeight;
  Phase=EFishingPhase::Fighting;ActiveFish=Fish[0];ToggleObserve();bMenuOpen=true;ResetCast();Check(!bObserve && Phase==EFishingPhase::Ready,TEXT("reset from paused fish camera returns to shore"));bMenuOpen=false;
- const FString Slot=TEXT("Wildwater_AutomatedTest");bool W=UGameplayStatics::SaveGameToSlot(SaveData,Slot,0);auto* Read=Cast<ULureSave>(UGameplayStatics::LoadGameFromSlot(Slot,0));Check(W && Read && Read->Journal.Num()==1 && Read->BestWeight>0,TEXT("save and reload round trip with personal best"));UGameplayStatics::DeleteGameInSlot(Slot,0);
+ const FString Slot=TEXT("Wildwater_AutomatedTest");bool W=UGameplayStatics::SaveGameToSlot(SaveData,Slot,0);auto* Read=Cast<ULureSave>(UGameplayStatics::LoadGameFromSlot(Slot,0));
+ Check(W && Read && Read->Journal.Num()==3 && Read->BestWeight>0,TEXT("save and reload round trip with personal best"));
+ if(Read && Read->Journal.Num()==3){
+  const FCatchRecord& Latest=Read->Journal[0];
+  Check(Latest.Score==CatchScore && FMath::IsNearlyEqual(Latest.HookQuality,.9f) && FMath::IsNearlyEqual(Latest.FightSeconds,42.f),TEXT("catch skill and duration survive reload"));
+  Check(Read->Experience==SaveData->Experience && Read->TotalCatches==Catches && FMath::IsNearlyEqual(Read->SpeciesBests.FindRef(Latest.Species),FirstWeight*1.25f),TEXT("experience and species best survive reload"));
+ }
+ UGameplayStatics::DeleteGameInSlot(Slot,0);
  UE_LOG(LogTemp,Display,TEXT("LURE_SESSION COMPLETE failures=%d"),Errors);FPlatformMisc::RequestExitWithStatus(false,Errors?1:0);
 }
 

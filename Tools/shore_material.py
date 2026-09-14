@@ -10,6 +10,7 @@ for suffix,prop in [('diff',u.MaterialProperty.MP_BASE_COLOR),('nor_gl',u.Materi
  if suffix=='nor_gl':tex.set_editor_property('compression_settings',u.TextureCompressionSettings.TC_NORMALMAP);tex.set_editor_property('flip_green_channel',True)
  u.EditorAssetLibrary.save_loaded_asset(tex)
  n=ml.create_material_expression(m,u.MaterialExpressionTextureSample,0,0);n.set_editor_property('texture',tex);n.set_editor_property('sampler_type',u.MaterialSamplerType.SAMPLERTYPE_NORMAL if suffix=='nor_gl' else u.MaterialSamplerType.SAMPLERTYPE_COLOR if suffix=='diff' else u.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
- ml.connect_material_expressions(uv,'',n,'Coordinates');ml.connect_material_property(n,'R' if suffix=='rough' else 'RGB',prop)
+ assert ml.connect_material_expressions(uv,'',n,'UVs')
+ assert ml.connect_material_property(n,'R' if suffix=='rough' else 'RGB',prop)
 ml.recompile_material(m);u.EditorAssetLibrary.save_loaded_asset(m)
 print('SHORE_COMPLETE')

@@ -1,6 +1,7 @@
-import bpy,json,math,pathlib
+import bpy,json,math,pathlib,os
 from mathutils import Vector,Matrix
-src=pathlib.Path('D:/LureGame/ArtSource/HumanBase');out=pathlib.Path('D:/LureGame/ArtSource/Anatomical');out.mkdir(exist_ok=True)
+src=pathlib.Path('D:/LureGame/ArtSource/HumanBase');out=pathlib.Path(os.environ.get('LURE_HAND_OUTPUT','D:/LureGame/ArtSource/Anatomical'));out.mkdir(exist_ok=True)
+grip_angles=json.loads(os.environ.get('LURE_GRIP_ANGLES','[43,74,43]'))
 verts=[];uvs=[];faces=[];faceuv=[];group=''
 for line in (src/'base.obj').read_text(encoding='utf-8').splitlines():
  a=line.split()
@@ -19,7 +20,7 @@ def transform(name):
  if name in transforms:return transforms[name]
  b=sk['bones'][name];parent=b['parent'];p=transform(parent) if parent else Matrix.Identity(4);r=Matrix.Identity(4)
  if name.startswith('finger') and name.endswith('.R'):
-  digit,segment=map(int,name[6:-2].split('-'));angle=([0,26,42,35] if digit==1 else [0,43,74,43])[segment]
+  digit,segment=map(int,name[6:-2].split('-'));angle=([0,26,42,35] if digit==1 else [0]+grip_angles)[segment]
   h=head(name);rot=Matrix.Rotation(math.radians(-angle),4,A)
   if digit==1 and segment==1:rot=Matrix.Rotation(math.radians(-28),4,N)@rot
   r=Matrix.Translation(h)@rot@Matrix.Translation(-h)
@@ -45,8 +46,8 @@ for i in ids:
  new.append(canonical(vv)+wrist+elbow_delta*t)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 skin=bpy.data.materials.new('AnatomicalSkin');skin.diffuse_color=(.53,.32,.23,1);skin.use_nodes=True
-skin.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value=(.53,.32,.23,1)
-bsdf=skin.node_tree.nodes.get('Principled BSDF');bsdf.inputs['Roughness'].default_value=.48;bsdf.inputs['Subsurface Weight'].default_value=.07
+bsdf=next(n for n in skin.node_tree.nodes if n.type=='BSDF_PRINCIPLED');bsdf.inputs['Base Color'].default_value=(.53,.32,.23,1)
+bsdf.inputs['Roughness'].default_value=.48;bsdf.inputs['Subsurface Weight'].default_value=.07
 texture_root=src/'Skins/skins/mindfront_aksel_skin'
 tex=skin.node_tree.nodes.new('ShaderNodeTexImage');tex.image=bpy.data.images.load(str(texture_root/'Aksel_Skin_diffuse.png'));skin.node_tree.links.new(tex.outputs['Color'],bsdf.inputs['Base Color'])
 norm=skin.node_tree.nodes.new('ShaderNodeTexImage');norm.image=bpy.data.images.load(str(texture_root/'Aksel_Skin_NRM.png'));norm.image.colorspace_settings.name='Non-Color'

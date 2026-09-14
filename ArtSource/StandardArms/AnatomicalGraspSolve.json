@@ -1,0 +1,797 @@
+{
+  "lift": [
+    0.0,
+    0.03999999910593033,
+    0.2800000011920929
+  ],
+  "roll_degrees": {
+    "r": -10,
+    "l": -40
+  },
+  "metrics": [
+    {
+      "frame": 1,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 1,
+      "side": "l",
+      "wrist_angle_deg": 46.63131680341576,
+      "unreachable_m": 0,
+      "contact_error_m": 3.993539000528275e-07,
+      "palm_toward_camera": 0.24245086312294006
+    },
+    {
+      "frame": 2,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 2,
+      "side": "l",
+      "wrist_angle_deg": 45.90109444906052,
+      "unreachable_m": 0,
+      "contact_error_m": 2.8204162762683183e-07,
+      "palm_toward_camera": 0.24405276589095592
+    },
+    {
+      "frame": 3,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 3,
+      "side": "l",
+      "wrist_angle_deg": 45.261197931384125,
+      "unreachable_m": 0,
+      "contact_error_m": 3.1548612355798676e-07,
+      "palm_toward_camera": 0.24581876210868359
+    },
+    {
+      "frame": 4,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 4,
+      "side": "l",
+      "wrist_angle_deg": 44.72559840233382,
+      "unreachable_m": 0,
+      "contact_error_m": 4.986882367933247e-07,
+      "palm_toward_camera": 0.24771251529455185
+    },
+    {
+      "frame": 5,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 5,
+      "side": "l",
+      "wrist_angle_deg": 44.306528730713104,
+      "unreachable_m": 0,
+      "contact_error_m": 2.602375924076584e-07,
+      "palm_toward_camera": 0.24969800002872944
+    },
+    {
+      "frame": 6,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 6,
+      "side": "l",
+      "wrist_angle_deg": 44.013916596480584,
+      "unreachable_m": 0,
+      "contact_error_m": 3.6863436927953305e-07,
+      "palm_toward_camera": 0.2517407704144716
+    },
+    {
+      "frame": 7,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 7,
+      "side": "l",
+      "wrist_angle_deg": 43.85487564165684,
+      "unreachable_m": 0,
+      "contact_error_m": 4.626564591008432e-07,
+      "palm_toward_camera": 0.2538074906915426
+    },
+    {
+      "frame": 8,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 8,
+      "side": "l",
+      "wrist_angle_deg": 43.83341860237925,
+      "unreachable_m": 0,
+      "contact_error_m": 4.504983561584644e-07,
+      "palm_toward_camera": 0.2558670211583376
+    },
+    {
+      "frame": 9,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 9,
+      "side": "l",
+      "wrist_angle_deg": 43.95025923341607,
+      "unreachable_m": 0,
+      "contact_error_m": 3.3094335071016566e-07,
+      "palm_toward_camera": 0.2578901592642069
+    },
+    {
+      "frame": 10,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 10,
+      "side": "l",
+      "wrist_angle_deg": 44.202651798720964,
+      "unreachable_m": 0,
+      "contact_error_m": 2.9019031068906855e-07,
+      "palm_toward_camera": 0.2598502244800329
+    },
+    {
+      "frame": 11,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 11,
+      "side": "l",
+      "wrist_angle_deg": 44.58474282617523,
+      "unreachable_m": 0,
+      "contact_error_m": 5.493761272974544e-07,
+      "palm_toward_camera": 0.26172264479100704
+    },
+    {
+      "frame": 12,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 12,
+      "side": "l",
+      "wrist_angle_deg": 45.087612088722835,
+      "unreachable_m": 0,
+      "contact_error_m": 6.02714670185944e-07,
+      "palm_toward_camera": 0.26348530873656273
+    },
+    {
+      "frame": 13,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 13,
+      "side": "l",
+      "wrist_angle_deg": 45.69992830253072,
+      "unreachable_m": 0,
+      "contact_error_m": 4.3187668163148874e-07,
+      "palm_toward_camera": 0.2651183195412159
+    },
+    {
+      "frame": 14,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 14,
+      "side": "l",
+      "wrist_angle_deg": 46.408263315690654,
+      "unreachable_m": 0,
+      "contact_error_m": 5.83671084692594e-07,
+      "palm_toward_camera": 0.26660405471920967
+    },
+    {
+      "frame": 15,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 15,
+      "side": "l",
+      "wrist_angle_deg": 47.197597542217764,
+      "unreachable_m": 0,
+      "contact_error_m": 6.957422214704008e-07,
+      "palm_toward_camera": 0.26792696863412857
+    },
+    {
+      "frame": 16,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 16,
+      "side": "l",
+      "wrist_angle_deg": 48.05194833945422,
+      "unreachable_m": 0,
+      "contact_error_m": 6.07313729935595e-07,
+      "palm_toward_camera": 0.2690733727067709
+    },
+    {
+      "frame": 17,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 17,
+      "side": "l",
+      "wrist_angle_deg": 48.95463980054144,
+      "unreachable_m": 0,
+      "contact_error_m": 7.464351444754828e-07,
+      "palm_toward_camera": 0.2700312305241823
+    },
+    {
+      "frame": 18,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 18,
+      "side": "l",
+      "wrist_angle_deg": 49.8888696601212,
+      "unreachable_m": 0,
+      "contact_error_m": 7.330402062087562e-07,
+      "palm_toward_camera": 0.2707900432869792
+    },
+    {
+      "frame": 19,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 19,
+      "side": "l",
+      "wrist_angle_deg": 50.8378971245378,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0800001433662818e-06,
+      "palm_toward_camera": 0.27134044002741575
+    },
+    {
+      "frame": 20,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 20,
+      "side": "l",
+      "wrist_angle_deg": 44.90430688687262,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0074069409119947e-06,
+      "palm_toward_camera": 0.2716739783063531
+    },
+    {
+      "frame": 21,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 21,
+      "side": "l",
+      "wrist_angle_deg": 45.71250951098189,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0056420988198847e-06,
+      "palm_toward_camera": 0.2717833686619997
+    },
+    {
+      "frame": 22,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 22,
+      "side": "l",
+      "wrist_angle_deg": 46.437680940445894,
+      "unreachable_m": 0,
+      "contact_error_m": 9.14093937251911e-07,
+      "palm_toward_camera": 0.27166165597736835
+    },
+    {
+      "frame": 23,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 23,
+      "side": "l",
+      "wrist_angle_deg": 47.06600370257371,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0308760736243711e-06,
+      "palm_toward_camera": 0.2713028648868203
+    },
+    {
+      "frame": 24,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 24,
+      "side": "l",
+      "wrist_angle_deg": 47.586877343773466,
+      "unreachable_m": 0,
+      "contact_error_m": 9.92158880816926e-07,
+      "palm_toward_camera": 0.27070219069719315
+    },
+    {
+      "frame": 25,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 25,
+      "side": "l",
+      "wrist_angle_deg": 47.993266769200055,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0643904760372206e-06,
+      "palm_toward_camera": 0.2698560832068324
+    },
+    {
+      "frame": 26,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 26,
+      "side": "l",
+      "wrist_angle_deg": 48.28182177106559,
+      "unreachable_m": 0,
+      "contact_error_m": 8.412560056530391e-07,
+      "palm_toward_camera": 0.2687634043395519
+    },
+    {
+      "frame": 27,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 27,
+      "side": "l",
+      "wrist_angle_deg": 48.45304778336863,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0286186952683595e-06,
+      "palm_toward_camera": 0.2674263399094343
+    },
+    {
+      "frame": 28,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 28,
+      "side": "l",
+      "wrist_angle_deg": 48.51057505165307,
+      "unreachable_m": 0,
+      "contact_error_m": 1.111335954490925e-06,
+      "palm_toward_camera": 0.2658514864742756
+    },
+    {
+      "frame": 29,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 29,
+      "side": "l",
+      "wrist_angle_deg": 48.46084102921162,
+      "unreachable_m": 0,
+      "contact_error_m": 9.893574327111356e-07,
+      "palm_toward_camera": 0.26405164413154125
+    },
+    {
+      "frame": 30,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 30,
+      "side": "l",
+      "wrist_angle_deg": 48.31205218833206,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0380666971351971e-06,
+      "palm_toward_camera": 0.2620468270033598
+    },
+    {
+      "frame": 31,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 31,
+      "side": "l",
+      "wrist_angle_deg": 48.073378057975134,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": 0.25986552983522415
+    },
+    {
+      "frame": 32,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 32,
+      "side": "l",
+      "wrist_angle_deg": 47.754124770884985,
+      "unreachable_m": 0,
+      "contact_error_m": 9.389209725549886e-07,
+      "palm_toward_camera": 0.25754534266889095
+    },
+    {
+      "frame": 33,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 33,
+      "side": "l",
+      "wrist_angle_deg": 47.36314766732053,
+      "unreachable_m": 0,
+      "contact_error_m": 1.0196140643689635e-06,
+      "palm_toward_camera": 0.25513249076902866
+    },
+    {
+      "frame": 34,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 34,
+      "side": "l",
+      "wrist_angle_deg": 46.90844148370527,
+      "unreachable_m": 0,
+      "contact_error_m": 8.658395332728443e-07,
+      "palm_toward_camera": 0.2526809424161911
+    },
+    {
+      "frame": 35,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 35,
+      "side": "l",
+      "wrist_angle_deg": 46.39708912620851,
+      "unreachable_m": 0,
+      "contact_error_m": 8.021839831737783e-07,
+      "palm_toward_camera": 0.2502503599971533
+    },
+    {
+      "frame": 36,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 36,
+      "side": "l",
+      "wrist_angle_deg": 45.83526508583994,
+      "unreachable_m": 0,
+      "contact_error_m": 9.390170413496803e-07,
+      "palm_toward_camera": 0.24790286645293236
+    },
+    {
+      "frame": 37,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 37,
+      "side": "l",
+      "wrist_angle_deg": 45.22849498563811,
+      "unreachable_m": 0,
+      "contact_error_m": 6.601336341629487e-07,
+      "palm_toward_camera": 0.24570028483867645
+    },
+    {
+      "frame": 38,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 38,
+      "side": "l",
+      "wrist_angle_deg": 44.58203465616932,
+      "unreachable_m": 0,
+      "contact_error_m": 6.901747523022147e-07,
+      "palm_toward_camera": 0.24370038881897926
+    },
+    {
+      "frame": 39,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 39,
+      "side": "l",
+      "wrist_angle_deg": 43.90116383366202,
+      "unreachable_m": 0,
+      "contact_error_m": 7.575082641644988e-07,
+      "palm_toward_camera": 0.24195429496467113
+    },
+    {
+      "frame": 40,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 40,
+      "side": "l",
+      "wrist_angle_deg": 43.19139448077639,
+      "unreachable_m": 0,
+      "contact_error_m": 6.171401855313426e-07,
+      "palm_toward_camera": 0.24050388298928738
+    },
+    {
+      "frame": 41,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 41,
+      "side": "l",
+      "wrist_angle_deg": 42.45896939041383,
+      "unreachable_m": 0,
+      "contact_error_m": 5.724839184373184e-07,
+      "palm_toward_camera": 0.23938032239675522
+    },
+    {
+      "frame": 42,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 42,
+      "side": "l",
+      "wrist_angle_deg": 41.71085194043316,
+      "unreachable_m": 0,
+      "contact_error_m": 4.897588023407696e-07,
+      "palm_toward_camera": 0.23860342800617218
+    },
+    {
+      "frame": 43,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 43,
+      "side": "l",
+      "wrist_angle_deg": 40.9550334521633,
+      "unreachable_m": 0,
+      "contact_error_m": 5.162451327240469e-07,
+      "palm_toward_camera": 0.23818190209567547
+    },
+    {
+      "frame": 44,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 44,
+      "side": "l",
+      "wrist_angle_deg": 40.20049562436282,
+      "unreachable_m": 0,
+      "contact_error_m": 3.665201031043781e-07,
+      "palm_toward_camera": 0.2381139099597931
+    },
+    {
+      "frame": 45,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 45,
+      "side": "l",
+      "wrist_angle_deg": 50.13834914974509,
+      "unreachable_m": 0,
+      "contact_error_m": 3.82817762454305e-07,
+      "palm_toward_camera": 0.23838846199214458
+    },
+    {
+      "frame": 46,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 46,
+      "side": "l",
+      "wrist_angle_deg": 49.20646204505065,
+      "unreachable_m": 0,
+      "contact_error_m": 4.3392836387637365e-07,
+      "palm_toward_camera": 0.23898676224052906
+    },
+    {
+      "frame": 47,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 47,
+      "side": "l",
+      "wrist_angle_deg": 48.30033158371632,
+      "unreachable_m": 0,
+      "contact_error_m": 4.3901562281418546e-07,
+      "palm_toward_camera": 0.23988368548452854
+    },
+    {
+      "frame": 48,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 48,
+      "side": "l",
+      "wrist_angle_deg": 47.43641169145267,
+      "unreachable_m": 0,
+      "contact_error_m": 4.06449487715538e-07,
+      "palm_toward_camera": 0.2410494200885296
+    },
+    {
+      "frame": 49,
+      "side": "r",
+      "wrist_angle_deg": 52.24850877306385,
+      "unreachable_m": 0,
+      "contact_error_m": 9.340306487211477e-07,
+      "palm_toward_camera": -0.11372058838605881
+    },
+    {
+      "frame": 49,
+      "side": "l",
+      "wrist_angle_deg": 46.63131680341576,
+      "unreachable_m": 0,
+      "contact_error_m": 3.993539000528275e-07,
+      "palm_toward_camera": 0.24245086312294006
+    }
+  ]
+}

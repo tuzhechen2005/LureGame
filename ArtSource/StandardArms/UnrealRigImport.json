@@ -1,0 +1,46 @@
+{
+  "mesh": "/Game/FirstPerson/AuthoredLegacy/SK_AuthoredFishingRig.SK_AuthoredFishingRig",
+  "animation": "/Game/FirstPerson/AuthoredLegacy/A_AuthoredReel.A_AuthoredReel",
+  "duration": 2.0,
+  "bones": 95,
+  "skeleton": "/Game/FirstPerson/AuthoredLegacy/SK_AuthoredFishingRig_Skeleton.SK_AuthoredFishingRig_Skeleton",
+  "materials": [
+    [
+      "OliveJacket",
+      "/Game/LureArt/M_PBR_Jacket.M_PBR_Jacket"
+    ],
+    [
+      "AnatomicalSkin",
+      "/Game/LureArt/M_AnatomicalSkin.M_AnatomicalSkin"
+    ],
+    [
+      "Metal_001",
+      "/Game/LureArt/M_PBR_Metal.M_PBR_Metal"
+    ],
+    [
+      "Rubber",
+      "/Game/LureArt/Rubber.Rubber"
+    ],
+    [
+      "Cork",
+      "/Game/LureArt/M_PBR_Cork.M_PBR_Cork"
+    ],
+    [
+      "Carbon",
+      "/Game/LureArt/M_PBR_Carbon.M_PBR_Carbon"
+    ],
+    [
+      "Gold",
+      "/Game/LureArt/Gold.Gold"
+    ],
+    [
+      "Metal",
+      "/Game/LureArt/M_PBR_Metal.M_PBR_Metal"
+    ],
+    [
+      "BassBelly",
+      "/Game/LureArt/BassBelly.BassBelly"
+    ]
+  ],
+  "socket_positions_validation": "Requires a registered runtime component; see AUTHORED_RIG in the game log."
+}
