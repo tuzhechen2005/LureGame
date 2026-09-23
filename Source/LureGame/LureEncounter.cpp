@@ -29,7 +29,7 @@ void ALurePawn::EndFight(bool Success,const FString& Reason){
  if(Success){
   if(Phase==EFishingPhase::Landed)return;
   if(bObserve)ToggleObserve();
-  ++Catches;SetPhase(EFishingPhase::Landed);Reeling=false;
+  ++Catches;SetPhase(EFishingPhase::Landed);Reeling=false;StartCatchPresentation();
   RecordCatch();Announce(TEXT("拿下了！"),LastCatch,2.5f,.65f);
   UE_LOG(LogTemp,Display,TEXT("ENCOUNTER_LANDED time=%.2f score=%d xp=%d"),Fight.Time,CatchScore,CatchXP);
  }else{
@@ -84,7 +84,7 @@ void ALurePawn::TickEncounter(float Dt){
  LurePosition.Z=Fight.JumpHeight>0?Fight.JumpHeight*100:(Fight.Move==EFightMove::Dive?-110.f:-25.f);
  if(Before!=Fight.Move){
   Announce(Fight.MoveName(),Fight.Instruction(),1.25f,Fight.Move==EFightMove::Recover?.1f:.35f);
-  if(Fight.Move!=EFightMove::Recover){SplashPosition=LurePosition;SplashPosition.Z=0;SplashTime=Clock;PlayCue(TEXT("Splash"));}
+  if(Fight.Move!=EFightMove::Recover && LurePosition.Z>-55.f){SplashPosition=LurePosition;SplashPosition.Z=0;SplashTime=Clock;SurfaceCue(LurePosition,.85f);}
  }
  if(!WasDanger&&Tension>1.f){PlayCue(TEXT("LineStrain"));Impact=.4f;}
  if(Fight.bBroken){EndFight(false,TEXT("断线了"));return;}

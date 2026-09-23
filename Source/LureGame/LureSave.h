@@ -28,6 +28,8 @@ public:
  UPROPERTY() int32 TimeOfDay=0;
  UPROPERTY() int32 Spot=0;
  UPROPERTY() bool bFullscreen=false;
+ // Missing fields in older tagged saves retain this shore-fishing default.
+ UPROPERTY() bool bFishingAssist=false;
  UPROPERTY() int32 TotalCatches=0;
  UPROPERTY() float BestWeight=0;
  UPROPERTY() int32 Experience=0;

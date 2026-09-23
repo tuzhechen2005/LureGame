@@ -1,0 +1,165 @@
+{
+  "author": "holmen",
+  "asset": "Fish Perch",
+  "license": "CC0 1.0",
+  "source_url": "https://blendswap.com/blend/8888",
+  "archive_url": "https://raw.githubusercontent.com/frankiezafe/Fish-shader/6a1c64975cd266a00797199dd7aca9ec4af72348/addons/fish-shader/assets/67777_Fish_Perch.zip",
+  "archive_sha256": "c7b6d68ca09399504c03d275e47611efe47c71e60cf6d72e6a1fba662e5fc334",
+  "processing": {
+    "autoexec_disabled": true,
+    "armature_pose": "REST",
+    "source_texts_executed": false,
+    "nose_axis": "+X",
+    "dorsal_axis": "+Z",
+    "units": "centimeters",
+    "full_length_cm": 40,
+    "fbx_axis_forward": "Y",
+    "fbx_axis_up": "Z",
+    "ue_convert_scene": false,
+    "opacity_formula": "1 - T_PerchNatural_Opacity.R (original mask is black on fish)",
+    "tail_split": "caudal peduncle at source s6 bone head; UVs interpolated on seam",
+    "source_to_prepared_matrix": [
+      [
+        0.0,
+        -13.134507179260254,
+        0.0,
+        1.1875596046447754
+      ],
+      [
+        13.134507179260254,
+        0.0,
+        0.0,
+        0.7956194281578064
+      ],
+      [
+        0.0,
+        0.0,
+        13.134507179260254,
+        -9.61211109161377
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "source_bump_channel_difference_max": 0.270588219165802,
+    "notes": "Static exports. All fins and both inner/outer eye meshes retained. Tail seam open and coincident at rest."
+  },
+  "tail_offset_cm": [
+    -11.829231262207031,
+    5.960464477539063e-08,
+    0.0
+  ],
+  "materials": {
+    "Fishy  :)": "M_PerchNatural_Skin",
+    "Eye inner": "M_PerchNatural_EyeInner",
+    "Eye outer": "M_PerchNatural_EyeOuter"
+  },
+  "textures": {
+    "T_PerchNatural_BaseColor": {
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\Textures\\T_PerchNatural_BaseColor.png",
+      "source": "Fish diffuse.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "0287cbf3922f41cfdefaa88f48a780e39d49ff4284225c49dfec800e3a4a7900"
+    },
+    "T_PerchNatural_SourceBump": {
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\Textures\\T_PerchNatural_SourceBump.png",
+      "source": "Fish normal.PNG",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "b3d22f1e702f545fe1982bd5be0570f19a019f0a49289dbd4539563578fb06a8"
+    },
+    "T_PerchNatural_Opacity": {
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\Textures\\T_PerchNatural_Opacity.png",
+      "source": "Fish alpha.PNG",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "f9a2ec9ff5340ea43d39d7a8d1429a4195c00d9a68a12307246458fc2271c8c0"
+    },
+    "T_PerchNatural_Translucency": {
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\Textures\\T_PerchNatural_Translucency.png",
+      "source": "Fish trans.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "sha256": "1ff7dbad8f7d6da0e159d7ced9f165828576ee82b1c4dfad02e4cad470d5681b"
+    },
+    "T_PerchNatural_Normal": {
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\Textures\\T_PerchNatural_Normal.png",
+      "size": [
+        2048,
+        2048
+      ],
+      "source": "Derived from legacy displacement luminance; OpenGL +Y tangent normal",
+      "sha256": "9f5f5ef7746823640ccfad8eb843b566b5a32a7320288d4dcd0f1e17b000b258"
+    }
+  },
+  "meshes": [
+    {
+      "name": "SM_PerchNaturalBody",
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\SM_PerchNaturalBody.fbx",
+      "local_bounds_cm": {
+        "min": [
+          -11.829231262207031,
+          -5.750571250915527,
+          -8.374796867370605
+        ],
+        "max": [
+          20.0,
+          5.750571250915527,
+          11.11535358428955
+        ]
+      },
+      "vertices": 13460,
+      "triangles": 26638,
+      "uv_layers": [
+        "fisk",
+        "sida"
+      ],
+      "material_slots": [
+        "M_PerchNatural_Skin",
+        "M_PerchNatural_EyeInner",
+        "M_PerchNatural_EyeOuter"
+      ],
+      "sha256": "2e54353a5eff7dc1772bf28b625611847c156c67c823e1be7e1ea6d02135f4b8"
+    },
+    {
+      "name": "SM_PerchNaturalTail",
+      "filename": "D:\\LureGame\\ArtSource\\ThirdParty\\Perch\\SM_PerchNaturalTail.fbx",
+      "local_bounds_cm": {
+        "min": [
+          -8.170768737792969,
+          -0.6563952565193176,
+          -5.365396022796631
+        ],
+        "max": [
+          0.0,
+          0.6563940644264221,
+          3.680880546569824
+        ]
+      },
+      "vertices": 948,
+      "triangles": 1858,
+      "uv_layers": [
+        "fisk",
+        "sida"
+      ],
+      "material_slots": [
+        "M_PerchNatural_Skin",
+        "M_PerchNatural_EyeInner",
+        "M_PerchNatural_EyeOuter"
+      ],
+      "sha256": "1020f0d3449178d3cdfb8408d923b7d6825647b7f8541e8583afc9c126a6f4b0"
+    }
+  ]
+}

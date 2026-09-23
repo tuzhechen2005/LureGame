@@ -3,6 +3,7 @@
 #include "CoveTerrain.h"
 #include "Kismet/GameplayStatics.h"
 #include "FishingVisuals.h"
+#include "LureSave.h"
 #include "Engine/GameViewportClient.h"
 #include "GameFramework/PlayerInput.h"
 #include "InputKeyEventArgs.h"
@@ -86,11 +87,12 @@ void ALurePawn::BeginPlay() {
  for(auto* L:Line) Tint(L,FLinearColor(.4f,.48f,.42f));
  if(auto* PC=Cast<APlayerController>(GetController())) { PC->SetControlRotation(FRotator(-7,-40,0)); PC->PlayerCameraManager->ViewPitchMin=-75;PC->PlayerCameraManager->ViewPitchMax=70; }
  CaptureMouse();
- const FVector Homes[]={FVector(900,200,-65),FVector(1850,800,-95),FVector(2900,-500,-140),FVector(4100,1000,-100),FVector(5400,0,-120)};
- for(int i=0;i<5;++i){auto* F=GetWorld()->SpawnActor<ALureFish>();F->Initialize(Homes[i],i*2.7f);F->SetSpecies(i%4);Fish.Add(F);}
+ PopulateLake();
  ResetCast();
  SessionInit();
  InitializeAuthoredRig();
+ InitializeShorePresentation();
+ if(FParse::Param(FCommandLine::Get(),TEXT("LurePopulationTest"))) RunPopulationTest();
  if(FParse::Param(FCommandLine::Get(),TEXT("LureEncounterTest"))) RunEncounterTest();
  if(FParse::Param(FCommandLine::Get(),TEXT("LureSmokeTest"))) RunSmokeTest();
 }
@@ -101,19 +103,21 @@ void ALurePawn::SetupPlayerInputComponent(UInputComponent* I) {
  I->BindAxisKey(EKeys::MouseX,this,&ALurePawn::LookYaw); I->BindAxisKey(EKeys::MouseY,this,&ALurePawn::LookPitch);
  I->BindKey(EKeys::LeftMouseButton,IE_Pressed,this,&ALurePawn::PressCast); I->BindKey(EKeys::LeftMouseButton,IE_Released,this,&ALurePawn::ReleaseCast);
  I->BindKey(EKeys::RightMouseButton,IE_Pressed,this,&ALurePawn::ReelStart); I->BindKey(EKeys::RightMouseButton,IE_Released,this,&ALurePawn::ReelStop);
- I->BindKey(EKeys::SpaceBar,IE_Pressed,this,&ALurePawn::Strike); I->BindKey(EKeys::R,IE_Pressed,this,&ALurePawn::ResetCast);
+ I->BindKey(EKeys::SpaceBar,IE_Pressed,this,&ALurePawn::Strike); I->BindKey(EKeys::R,IE_Pressed,this,&ALurePawn::ReleaseOrResetCast);
  I->BindKey(EKeys::Tab,IE_Pressed,this,&ALurePawn::SwitchLure);
  I->BindKey(EKeys::V,IE_Pressed,this,&ALurePawn::ToggleObserve);
  I->BindKey(EKeys::Escape,IE_Pressed,this,&ALurePawn::ReleaseMouse);
  I->BindKey(EKeys::MouseScrollUp,IE_Pressed,this,&ALurePawn::DragUp); I->BindKey(EKeys::MouseScrollDown,IE_Pressed,this,&ALurePawn::DragDown);
 }
 void ALurePawn::MoveForward(float V) {
+ if(Phase==EFishingPhase::Releasing || (Phase==EFishingPhase::Landed && ActiveFish))return;
  if(V==0 || bObserve || Phase==EFishingPhase::Fighting || Phase==EFishingPhase::Landing) return;
  
  FVector P=GetActorLocation()+FRotator(0,GetControlRotation().Yaw,0).Vector()*V*220*FrameDelta;
  P.X=FMath::Clamp(P.X,-1300.0f,-240.0f); P.Y=FMath::Clamp(P.Y,-1900.0f,1900.0f); P.Z=Cove::Height(P.X,P.Y); SetActorLocation(P);
 }
 void ALurePawn::MoveRight(float V) {
+ if(Phase==EFishingPhase::Releasing || (Phase==EFishingPhase::Landed && ActiveFish))return;
  if(V==0 || bObserve || Phase==EFishingPhase::Fighting || Phase==EFishingPhase::Landing) return;
  
  FVector P=GetActorLocation()+FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::Y)*V*220*FrameDelta;
@@ -137,7 +141,18 @@ void ALurePawn::Strike() {
  else if(Phase==EFishingPhase::Landing && ActiveFish) EndFight(true,TEXT(""));
  else if(Phase==EFishingPhase::Retrieving && Clock-LastTwitch>.45f) {LastTwitch=Clock;Impact=.12f; Notice=TEXT("轻抽一下，停顿，等待拟饵下沉。");}
 }
-void ALurePawn::ResetCast(){ if(ActiveFish){ActiveFish->Escape();ActiveFish=nullptr;} if(bObserve)ToggleObserve(); SetPhase(EFishingPhase::Ready); Charge=0; Tension=0; Interest=0; Reeling=false; Depth=0; RodSideInput=RodLiftInput=0;LastReelStop=Clock;LastTwitch=Clock-10;EventLife=0;Notice=TEXT("向湖面瞄准，按住左键蓄力，松开抛投。"); }
+void ALurePawn::ResetCast(){
+ if(ActiveFish){
+  const bool Released=Phase==EFishingPhase::Landed || Phase==EFishingPhase::Releasing;
+  if(Released)ActiveFish->SetActorLocation(CatchWaterPosition+FVector(0,0,-30));
+  ActiveFish->Escape(Released);ReplenishFish(ActiveFish);ActiveFish=nullptr;
+ }
+ if(bObserve)ToggleObserve();
+ if(CatchNet)CatchNet->SetVisibility(false);
+ SetPhase(EFishingPhase::Ready);Charge=0;Tension=0;Interest=0;Reeling=false;Depth=0;
+ RodSideInput=RodLiftInput=0;LastReelStop=Clock;LastTwitch=Clock-10;EventLife=0;
+ Notice=TEXT("向湖面瞄准，按住左键蓄力，松开抛投。");
+}
 void ALurePawn::SwitchLure(){ if(Phase==EFishingPhase::Ready && !bMenuOpen){LureType=(LureType+1)%5;
  const TCHAR* Names[]={TEXT("SM_Minnow"),TEXT("SM_SoftBait"),TEXT("SM_Spinner"),TEXT("SM_Popper"),TEXT("SM_Jig")};
  Lure->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,*FString::Printf(TEXT("/Game/LureArt/%s.%s"),Names[LureType],Names[LureType])));Notice=LureName();} }
@@ -145,7 +160,8 @@ void ALurePawn::DragUp(){Drag=FMath::Clamp(Drag+0.05f,0.1f,1.f);}
 void ALurePawn::DragDown(){Drag=FMath::Clamp(Drag-0.05f,0.1f,1.f);}
 float ALurePawn::DistanceMetres() const {return FVector::Dist2D(GetActorLocation(),LurePosition)/100.f;}
 void ALurePawn::Tick(float Dt) {
- Super::Tick(Dt); FrameDelta=Dt; Clock+=Dt;
+ Super::Tick(Dt); FrameDelta=Dt;
+ if(!bMenuOpen || FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture")))Clock+=Dt;
  UpdateEnvironment(Dt);
  if(FParse::Param(FCommandLine::Get(),TEXT("LureSessionTest")) && Clock>1 && Clock-Dt<=1)RunSessionTest();
  if(FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"))){
@@ -166,6 +182,8 @@ void ALurePawn::Tick(float Dt) {
  }
  PhaseTime+=Dt;
  if(FParse::Param(FCommandLine::Get(),TEXT("LureEncounterCapture")))RunEncounterCapture(Dt);
+ if(FParse::Param(FCommandLine::Get(),TEXT("LureShoreCapture")))RunShoreCapture(Dt);
+ if(FParse::Param(FCommandLine::Get(),TEXT("LureShoreTest")) && Clock>1 && Clock-Dt<=1)RunShoreTest();
  if(FParse::Param(FCommandLine::Get(),TEXT("LureInputTest")) && Clock>1 && Clock-Dt<=1) RunInputTest();
  if(auto* PC=Cast<APlayerController>(GetController())) { MoveForward(float(PC->IsInputKeyDown(EKeys::W))-float(PC->IsInputKeyDown(EKeys::S))); MoveRight(float(PC->IsInputKeyDown(EKeys::D))-float(PC->IsInputKeyDown(EKeys::A))); }
  if(FParse::Param(FCommandLine::Get(),TEXT("LureCapture"))) {
@@ -217,11 +235,13 @@ void ALurePawn::Tick(float Dt) {
   Depth=FMath::Max(0.f,-LurePosition.Z/100);
   if(Clock-LastTwitch<0.3f) LurePosition.Z+=50*Dt;
   if(DistanceMetres()<3 || LurePosition.X<50){ResetCast(); Notice=TEXT("拟饵已收回，可以再次抛投。");}
-  else if(Phase==EFishingPhase::Bite && PhaseTime>BiteWindow){if(ActiveFish)ActiveFish->Escape();ActiveFish=nullptr;SetPhase(EFishingPhase::Retrieving);PlayCue(TEXT("Escape"));Announce(TEXT("它吐饵了"),TEXT("下次留意竿尖，在咬口亮区按空格"),2.5f);Notice=TEXT("错过咬口，换个节奏再试试。");}
+  else if(Phase==EFishingPhase::Bite && PhaseTime>BiteWindow){if(ActiveFish){ActiveFish->Escape();ReplenishFish(ActiveFish);}ActiveFish=nullptr;SetPhase(EFishingPhase::Retrieving);PlayCue(TEXT("Escape"));Announce(TEXT("竿尖的拉力消失了"),HasFishingAssist()?TEXT("下次留意竿尖，在咬口亮区按空格"):TEXT("继续收停，或换个落点再试试"),2.5f);Notice=TEXT("错过咬口，换个节奏再试试。");}
  }
  TickEncounter(Dt);
  UpdateFish(Dt);
- Lure->SetVisibility(Phase!=EFishingPhase::Landed);
+ UpdateCatchPresentation(Dt);
+ UpdateShoreCues(Dt);
+ Lure->SetVisibility(Phase!=EFishingPhase::Landed && Phase!=EFishingPhase::Releasing);
  Lure->SetWorldLocation(LurePosition);
  Lure->SetWorldRotation((GetActorLocation()-LurePosition).Rotation());
  if(bObserve && ActiveFish){
@@ -233,7 +253,7 @@ void ALurePawn::Tick(float Dt) {
   auto Point=[&](float T){return FMath::Lerp(Tip,LurePosition,T)-FVector(0,0,FMath::Sin(T*PI)*(Phase==EFishingPhase::Fighting?8:35));};
   FVector P=Point(A),Q=Point(B),D=Q-P;
   Line[i]->SetWorldLocation((P+Q)*.5f);Line[i]->SetWorldRotation(FRotationMatrix::MakeFromZ(D).Rotator());
-  Line[i]->SetWorldScale3D(FVector(.0007f,.0007f,D.Size()/100));Line[i]->SetVisibility(Phase!=EFishingPhase::Landed);
+  Line[i]->SetWorldScale3D(FVector(.0012f,.0012f,D.Size()/100));Line[i]->SetVisibility(Phase!=EFishingPhase::Landed && Phase!=EFishingPhase::Releasing);
  }
  for(int i=0;i<Ripples.Num();++i){
   const float Age=Clock-SplashTime-i*.15f;float Radius=8+Age*75;
@@ -254,6 +274,10 @@ void ALurePawn::ReleaseMouse(){
  if(auto* PC=Cast<APlayerController>(GetController())){PC->SetInputMode(FInputModeGameAndUI());PC->bShowMouseCursor=true;}
 }
 void ALurePawn::ToggleObserve(){
+ if(!bObserve && (Phase==EFishingPhase::Releasing || bMenuOpen))return;
+ if(!bObserve && Phase!=EFishingPhase::Landed && !HasFishingAssist()){
+  Notice=TEXT("岸钓模式：留意竿线。Esc → 设置可开启水下观察辅助。");return;
+ }
  if(!bObserve && (Phase==EFishingPhase::Ready || Phase==EFishingPhase::Charging || Phase==EFishingPhase::Flying))return;
  bObserve=!bObserve;Camera->bUsePawnControlRotation=!bObserve;
  if(bObserve && Phase!=EFishingPhase::Landed){for(TActorIterator<AExponentialHeightFog> I(GetWorld());I;++I){I->GetComponent()->SetFogDensity(.16f);I->GetComponent()->SetFogHeightFalloff(.001f);I->GetComponent()->SetFogInscatteringColor(FLinearColor(.015f,.095f,.075f));}}
@@ -261,19 +285,19 @@ void ALurePawn::ToggleObserve(){
  if(!bObserve){Camera->SetRelativeLocation(FVector(0,0,170));Camera->SetRelativeRotation(FRotator::ZeroRotator);}
 }
 void ALurePawn::UpdateRig(float Dt){
- Rig->SetVisibility(!bObserve && Phase!=EFishingPhase::Landed,true);
+ Rig->SetVisibility(!bObserve && Phase!=EFishingPhase::Landed && Phase!=EFishingPhase::Releasing,true);
  CrankAngle+=Reeling?Dt*600:0;
  float Kick=Phase==EFishingPhase::Flying?FMath::Exp(-PhaseTime*7)*18:0;
  if(bUseAuthoredRig){
   Rig->SetRelativeLocation(FVector(0,0,FMath::Sin(Clock*1.8f)*.25f));
-  Rig->SetRelativeRotation(FRotator(Charge*48-Kick-Tension*8+RodLiftInput*8+Impact*2,RodSideInput*7,-RodSideInput*5));
+  Rig->SetRelativeRotation(FRotator(Charge*48-Kick-RodLoad()*8+RodLiftInput*8+Impact*2,RodSideInput*7,-RodSideInput*5));
   for(auto* Old:{Rod,RightArm,LeftArm,Crank})Old->SetVisibility(false);
-  AuthoredRig->SetVisibility(!bObserve && Phase!=EFishingPhase::Landed);
+  AuthoredRig->SetVisibility(!bObserve && Phase!=EFishingPhase::Landed && Phase!=EFishingPhase::Releasing);
   AuthoredRig->SetPosition(FMath::Fmod(CrankAngle/360.f*2.f,2.f),false);
   AuthoredRig->TickAnimation(0.f,false);AuthoredRig->RefreshBoneTransforms();
   const FVector Origin=AuthoredRig->GetSocketLocation(TEXT("FP_Rod"));
   const FVector Axis=(AuthoredRig->GetSocketLocation(TEXT("FP_Tip"))-Origin)/210.f;
-  const FVector Bend=Camera->GetUpVector()*(-Tension*42.f);
+  const FVector Bend=RodBend();
   for(int i=0;i<Blank.Num();++i){
    float A=float(i)/Blank.Num(),B=float(i+1)/Blank.Num();
    FVector P=Origin+Axis*(18+A*192)+Bend*A*A,Q=Origin+Axis*(18+B*192)+Bend*B*B,D=Q-P;
@@ -326,28 +350,31 @@ void ALurePawn::InitializeAuthoredRig(){
  UE_LOG(LogTemp,Display,TEXT("AUTHORED_RIG: active bones=%d view=%s forward_length=%.3f rod_length=%.3f"),AuthoredRig->GetNumBones(),*Eye.ToString(),Forward.Size(),(Point(TEXT("FP_Tip"))-Point(TEXT("FP_Rod"))).Size());
 }
 FVector ALurePawn::RodTip() const{
- return bUseAuthoredRig?AuthoredRig->GetSocketLocation(TEXT("FP_Tip"))-Camera->GetUpVector()*Tension*42.f:
+ return bUseAuthoredRig?AuthoredRig->GetSocketLocation(TEXT("FP_Tip"))+RodBend():
   Rig->GetComponentTransform().TransformPosition(FVector(210,0,-Tension*42));
 }
 void ALurePawn::UpdateFish(float Dt){
  const float Speeds[]={180.f,120.f,220.f,110.f,100.f};
  FLurePresentation Presentation;Presentation.RetrieveSpeed=Reeling?Speeds[LureType]:0;
  Presentation.PauseSeconds=Reeling?0:Clock-LastReelStop;Presentation.TwitchAge=Clock-LastTwitch;Presentation.LureType=LureType;
+ ALureFish* Responding=nullptr;float BestResponse=MAX_flt;
+ if(Phase==EFishingPhase::Retrieving)for(auto* F:Fish){
+  if(!IsValid(F) || F->HabitatIndex<0 || !F->CanRespondToLure(LurePosition))continue;
+  const bool Following=F->Behavior==EFishBehavior::Following || F->Behavior==EFishBehavior::Hesitating || F->Behavior==EFishBehavior::Attacking;
+  const float Score=FVector::DistSquared(F->GetActorLocation(),LurePosition)*(Following?.08f:1.f);
+  if(Score<BestResponse){BestResponse=Score;Responding=F;}
+ }
  for(auto* F:Fish){
+  if(!IsValid(F))continue;
   if(F==ActiveFish && (Phase==EFishingPhase::Fighting || Phase==EFishingPhase::Bite || Phase==EFishingPhase::Landing)){F->SetHooked(LurePosition,Clock);continue;}
-  if(F==ActiveFish && Phase==EFishingPhase::Landed){
-   // Stable camera-relative trophy placement; the observation camera uses a fixed shore anchor.
-   const FRotator View=GetControlRotation();const FRotationMatrix Basis(View);
-   const FVector Trophy=GetActorLocation()+FVector(0,0,170)+Basis.GetUnitAxis(EAxis::X)*95+Basis.GetUnitAxis(EAxis::Y)*27-Basis.GetUnitAxis(EAxis::Z)*8;
-   F->SetHooked(Trophy,Clock*.12f);F->SetActorLocation(Trophy);
-   F->SetActorRotation(FRotator(0,View.Yaw+90,FMath::Sin(Clock)*2));continue;
-  }
+  if(F==ActiveFish && (Phase==EFishingPhase::Landed || Phase==EFishingPhase::Releasing))continue;
   F->Activity=(Weather==3?1.2f:1.f)*(TimeOfDay==0||TimeOfDay==2?1.15f:.8f)*(LureType==F->Species%5?1.3f:1.f);
-  bool Attack=F->Simulate(Dt,LurePosition,Phase==EFishingPhase::Retrieving,Presentation);
+  bool Attack=F->Simulate(Dt,LurePosition,Phase==EFishingPhase::Retrieving && (F->HabitatIndex<0 || F==Responding),Presentation);
   if(Attack && Phase==EFishingPhase::Retrieving){ActiveFish=F;BiteWindow=F->StrikeWindow;SetPhase(EFishingPhase::Bite);ReelStop();SplashPosition=LurePosition;SplashPosition.Z=0;SplashTime=Clock;PlayCue(TEXT("Bite"));Impact=.7f;Notice=TEXT("咬口！按空格刺鱼！");UE_LOG(LogTemp,Display,TEXT("ENCOUNTER_BITE species=%d window=%.2f natural=true"),F->Species,BiteWindow);}
   else if(Phase==EFishingPhase::Retrieving && F->InterestLevel>.4f && Clock-LastFollowCue>5.f && FVector::Dist2D(F->GetActorLocation(),LurePosition)<550){
-   LastFollowCue=Clock;SplashPosition=F->GetActorLocation();SplashPosition.Z=0;SplashTime=Clock;
-   Announce(F->Behavior==EFishBehavior::Hesitating?TEXT("它在犹豫…"):TEXT("水下有动静"),TEXT("试试停顿，给它一个攻击机会"),1.8f,.07f);
+   LastFollowCue=Clock;
+   if(F->GetActorLocation().Z>-125.f){SplashPosition=F->GetActorLocation();SplashPosition.Z=0;SplashTime=Clock;SurfaceCue(F->GetActorLocation(),.65f);}
+   if(HasFishingAssist())Announce(F->Behavior==EFishBehavior::Hesitating?TEXT("它在犹豫…"):TEXT("水下有动静"),TEXT("试试停顿，给它一个攻击机会"),1.8f,.07f);
   }
  }
 }

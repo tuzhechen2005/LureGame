@@ -13,7 +13,7 @@ class ALureFish;
 class ULureSave;
 class UAudioComponent;
 class UFont;
-enum class EFishingPhase : uint8 { Ready, Charging, Flying, Retrieving, Bite, Fighting, Landed, Landing };
+enum class EFishingPhase : uint8 { Ready, Charging, Flying, Retrieving, Bite, Fighting, Landed, Landing, Releasing };
 
 UCLASS()
 class LUREGAME_API ALurePawn : public APawn {
@@ -43,6 +43,7 @@ public:
  float BiteProgress() const { return Phase==EFishingPhase::Bite?FMath::Clamp(PhaseTime/BiteWindow,0.f,1.f):0.f; }
  float LandingProgress() const { return Phase==EFishingPhase::Landing?FMath::Clamp(PhaseTime/4.f,0.f,1.f):0.f; }
  FString CadenceHint() const;
+ bool HasFishingAssist() const;
  FString ProgressTitle() const;
  FString ProgressDetail() const;
  float ProgressFraction() const;
@@ -88,6 +89,22 @@ private:
  UPROPERTY() TArray<UStaticMeshComponent*> Guides;
  UPROPERTY() TArray<UStaticMeshComponent*> Line;
  UPROPERTY() TArray<UStaticMeshComponent*> Ripples;
+ UPROPERTY() UStaticMeshComponent* CatchNet;
+ UPROPERTY() TArray<UStaticMeshComponent*> SurfaceCues;
+ FVector CuePosition=FVector::ZeroVector;
+ float CueTime=-100,CueStrength=0,NextHabitatCue=8;
+ FVector CatchWaterPosition=FVector::ZeroVector;
+ FTransform CatchDisplayTransform;
+ void InitializeShorePresentation();
+ void StartCatchPresentation();
+ void UpdateCatchPresentation(float Dt);
+ void ReleaseOrResetCast();
+ void UpdateShoreCues(float Dt);
+ void SurfaceCue(FVector Position,float Strength);
+ float RodLoad() const;
+ FVector RodBend() const;
+ void RunShoreTest();
+ void RunShoreCapture(float Dt);
  UPROPERTY() TArray<ALureFish*> Fish;
  UPROPERTY() ALureFish* ActiveFish=nullptr;
  FVector SplashPosition=FVector::ZeroVector;

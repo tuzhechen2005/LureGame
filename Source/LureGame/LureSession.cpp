@@ -24,8 +24,22 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
+#include "Serialization/MemoryReader.h"
+#include "Serialization/MemoryWriter.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "UObject/UnrealType.h"
 namespace {
-bool IsTesting(){return FParse::Param(FCommandLine::Get(),TEXT("LureSmokeTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureInputTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureSessionTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureRigReview"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterCapture"));}
+bool IsTesting(){return FParse::Param(FCommandLine::Get(),TEXT("LureSmokeTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureInputTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureSessionTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureMenuCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LureRigReview"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureEncounterCapture"))||FParse::Param(FCommandLine::Get(),TEXT("LurePopulationTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureShoreTest"))||FParse::Param(FCommandLine::Get(),TEXT("LureShoreCapture"));}
+// Exercise the same tagged-property serialization as SaveGame, with the new
+// field genuinely absent from the payload as it is in an older player save.
+struct FLegacyFishingSaveArchive : FObjectAndNameAsStringProxyArchive {
+ explicit FLegacyFishingSaveArchive(FArchive& Inner):FObjectAndNameAsStringProxyArchive(Inner,false){}
+ virtual bool ShouldSkipProperty(const FProperty* Property) const override {
+  if(Property && Property->GetFName()==GET_MEMBER_NAME_CHECKED(ULureSave,bFishingAssist)){bSkippedAssist=true;return true;}
+  return FObjectAndNameAsStringProxyArchive::ShouldSkipProperty(Property);
+ }
+ mutable bool bSkippedAssist=false;
+};
 void RecoverCatchBests(ULureSave* Save){
  // Older saves have a journal but no per-species records or experience.
  for(const FCatchRecord& Entry:Save->Journal){
@@ -87,7 +101,7 @@ void ALurePawn::RecordCatch(){
 }
 void ALurePawn::MenuAction(const FString& A){
  if(A==TEXT("play")){
-  bMenuOpen=false;bStarted=true;Rig->SetVisibility(!bObserve,true);CaptureMouse();Notice=TEXT("向湖面瞄准，按住左键蓄力，松开抛投。Tab 切换拟饵。");SaveSession();
+  bMenuOpen=false;bStarted=true;Rig->SetVisibility(!bObserve,true);CaptureMouse();Notice=TEXT("看水面与竿线，听泄力声；Esc → 设置可开启钓鱼辅助。");SaveSession();
  }else if(A==TEXT("settings"))MenuPage=1;
  else if(A==TEXT("journal"))MenuPage=2;
  else if(A==TEXT("help"))MenuPage=3;
@@ -103,6 +117,13 @@ void ALurePawn::MenuAction(const FString& A){
  else if(A==TEXT("sens-"))Sensitivity=FMath::Max(.04f,Sensitivity-.02f);
  else if(A==TEXT("volume+"))Volume=FMath::Min(1.f,Volume+.1f);
  else if(A==TEXT("volume-"))Volume=FMath::Max(0.f,Volume-.1f);
+ else if(A==TEXT("fishing-assist")){
+  // Return the underwater camera before disabling its entry permission.
+  // A landed-fish close-up remains available in either mode.
+  if(SaveData->bFishingAssist && bObserve && Phase!=EFishingPhase::Landed)ToggleObserve();
+  SaveData->bFishingAssist=!SaveData->bFishingAssist;
+  if(bMenuOpen)Rig->SetVisibility(false,true);
+ }
  else if(A==TEXT("quality")){SaveData->Quality=(SaveData->Quality+1)%3;auto* Q=UGameUserSettings::GetGameUserSettings();Q->SetOverallScalabilityLevel(SaveData->Quality);Q->ApplyNonResolutionSettings();}
  else if(A==TEXT("fullscreen")){SaveData->bFullscreen=!SaveData->bFullscreen;auto* Q=UGameUserSettings::GetGameUserSettings();Q->SetFullscreenMode(SaveData->bFullscreen?EWindowMode::WindowedFullscreen:EWindowMode::Windowed);Q->ApplyResolutionSettings(false);}
  SaveSession();
@@ -146,6 +167,8 @@ void ALurePawn::UpdateEnvironment(float Dt){
 void ALurePawn::RunSessionTest(){
  int Errors=0;auto Check=[&](bool B,const TCHAR* N){UE_LOG(LogTemp,Display,TEXT("LURE_SESSION %s: %s"),B?TEXT("PASS"):TEXT("FAIL"),N);if(!B)++Errors;};
  Check(SaveData!=nullptr,TEXT("session save object initialized"));
+ Check(SaveData && !SaveData->bFishingAssist,TEXT("new session defaults to shore fishing without assist"));
+ MenuAction(TEXT("fishing-assist"));Check(SaveData->bFishingAssist,TEXT("fishing assist can be enabled from settings"));
  MenuAction(TEXT("weather"));Check(Weather==1,TEXT("weather selection"));MenuAction(TEXT("time"));Check(TimeOfDay==1,TEXT("time selection"));
  MenuAction(TEXT("spot"));Check(Spot==1 && FMath::Abs(GetActorLocation().Y+1600)<1,TEXT("spot change moves player"));
  for(int i=0;i<100;++i)MenuAction(TEXT("sens+"));Check(Sensitivity<=.4f,TEXT("sensitivity capped"));
@@ -159,14 +182,31 @@ void ALurePawn::RunSessionTest(){
  ++Catches;RecordCatch();
  Check(!bNewSpecies && !bPersonalBest,TEXT("equal weight cannot repeatedly claim a personal best"));
  ActiveFish->Weight=FirstWeight;
- Phase=EFishingPhase::Fighting;ActiveFish=Fish[0];ToggleObserve();bMenuOpen=true;ResetCast();Check(!bObserve && Phase==EFishingPhase::Ready,TEXT("reset from paused fish camera returns to shore"));bMenuOpen=false;
+ Phase=EFishingPhase::Fighting;ActiveFish=Fish[0];ToggleObserve();
+ Check(bObserve,TEXT("enabled assist permits underwater observation"));
+ bMenuOpen=true;MenuAction(TEXT("fishing-assist"));
+ Check(!SaveData->bFishingAssist && !bObserve && bMenuOpen,TEXT("disabling assist returns underwater view to shore without closing settings"));
+ bMenuOpen=false;ToggleObserve();Check(!bObserve,TEXT("shore mode cannot enter underwater observation"));
+ MenuAction(TEXT("fishing-assist"));ToggleObserve();bMenuOpen=true;ResetCast();Check(!bObserve && Phase==EFishingPhase::Ready,TEXT("reset from paused fish camera returns to shore"));bMenuOpen=false;
  const FString Slot=TEXT("Wildwater_AutomatedTest");bool W=UGameplayStatics::SaveGameToSlot(SaveData,Slot,0);auto* Read=Cast<ULureSave>(UGameplayStatics::LoadGameFromSlot(Slot,0));
  Check(W && Read && Read->Journal.Num()==3 && Read->BestWeight>0,TEXT("save and reload round trip with personal best"));
+ Check(W && Read && Read->bFishingAssist,TEXT("enabled fishing assist survives save and reload"));
  if(Read && Read->Journal.Num()==3){
   const FCatchRecord& Latest=Read->Journal[0];
   Check(Latest.Score==CatchScore && FMath::IsNearlyEqual(Latest.HookQuality,.9f) && FMath::IsNearlyEqual(Latest.FightSeconds,42.f),TEXT("catch skill and duration survive reload"));
   Check(Read->Experience==SaveData->Experience && Read->TotalCatches==Catches && FMath::IsNearlyEqual(Read->SpeciesBests.FindRef(Latest.Species),FirstWeight*1.25f),TEXT("experience and species best survive reload"));
  }
+ // Serialize a legacy payload that contains the catch journal but omits the
+ // assist property. Loading it must retain the new class's false default.
+ TArray<uint8> LegacyBytes;bool bOmittedAssist=false;
+ {FMemoryWriter Writer(LegacyBytes,true);FLegacyFishingSaveArchive Archive(Writer);SaveData->Serialize(Archive);bOmittedAssist=Archive.bSkippedAssist;}
+ ULureSave* Legacy=NewObject<ULureSave>(this);
+ {FMemoryReader Reader(LegacyBytes,true);FObjectAndNameAsStringProxyArchive Archive(Reader,true);Legacy->Serialize(Archive);}
+ Check(bOmittedAssist && !Legacy->bFishingAssist && Legacy->Journal.Num()==SaveData->Journal.Num(),TEXT("legacy save without assist field loads catch history and defaults assist off"));
+ SaveData->bFishingAssist=false;
+ const bool WOff=UGameplayStatics::SaveGameToSlot(SaveData,Slot,0);
+ Read=Cast<ULureSave>(UGameplayStatics::LoadGameFromSlot(Slot,0));
+ Check(WOff && Read && !Read->bFishingAssist,TEXT("disabled fishing assist survives save and reload"));
  UGameplayStatics::DeleteGameInSlot(Slot,0);
  UE_LOG(LogTemp,Display,TEXT("LURE_SESSION COMPLETE failures=%d"),Errors);FPlatformMisc::RequestExitWithStatus(false,Errors?1:0);
 }

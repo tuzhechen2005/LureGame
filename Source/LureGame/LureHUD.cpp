@@ -9,6 +9,7 @@
 #include "InputCoreTypes.h"
 void ALureHUD::DrawHUD(){
  Super::DrawHUD();auto* P=Cast<ALurePawn>(GetOwningPawn());if(!P||!Canvas)return;
+ const bool bAssist=P->SaveData && P->SaveData->bFishingAssist;
  if(!ChineseFont){ChineseFont=NewObject<UFont>(this);ChineseFont->FontCacheType=EFontCacheType::Runtime;ChineseFont->LegacyFontSize=20;ChineseFont->GetMutableInternalCompositeFont().DefaultTypeface.Fonts.Add(FTypefaceEntry(TEXT("Regular"),FPaths::ProjectContentDir()/TEXT("UI/Chinese.ttf"),EFontHinting::Default,EFontLoadingPolicy::LazyLoad));}
  const float S=FMath::Min(Canvas->SizeX/1280.f,Canvas->SizeY/720.f);const float OX=(Canvas->SizeX-1280*S)/2,OY=(Canvas->SizeY-720*S)/2;
  const FLinearColor White(.93f,.96f,.91f),Muted(.61f,.72f,.68f),Accent(.35f,.8f,.67f),Amber(1.f,.72f,.3f),Danger(1.f,.32f,.23f),Panel(.012f,.025f,.024f,.9f);
@@ -38,7 +39,9 @@ void ALureHUD::DrawHUD(){
    Text(FString::Printf(TEXT("鼠标灵敏度  %.2f"),P->Sensitivity),680,267,20,White);Button(TEXT("－"),990,257,64,TEXT("sens-"));Button(TEXT("＋"),1066,257,64,TEXT("sens+"));
    Text(FString::Printf(TEXT("声音音量  %.0f%%"),P->Volume*100),680,327,20,White);Button(TEXT("－"),990,317,64,TEXT("volume-"));Button(TEXT("＋"),1066,317,64,TEXT("volume+"));
    const TCHAR* Quality[]={TEXT("性能"),TEXT("均衡"),TEXT("精细")};Button(FString(TEXT("画质："))+Quality[P->SaveData->Quality],680,377,450,TEXT("quality"));Button(P->SaveData->bFullscreen?TEXT("显示：无边框全屏"):TEXT("显示：窗口"),680,433,450,TEXT("fullscreen"));
-   Text(TEXT("天气与时段会影响鱼的活跃度。笔记本建议先使用“均衡”。"),80,517,18,Muted);Button(TEXT("返回"),80,584,200,TEXT("back"));
+   Button(bAssist?TEXT("钓鱼辅助：开启"):TEXT("钓鱼辅助：关闭"),80,433,490,TEXT("fishing-assist"));
+   Text(bAssist?TEXT("已开启：V 水下观察、跟饵状态、刺鱼亮区与搏鱼提示。"):TEXT("岸钓：看水面和竿线，听泄力声；需要时可开启辅助。"),80,505,18,Muted);
+   Text(TEXT("天气与时段会影响鱼的活跃度。笔记本建议使用“均衡”。"),80,541,17,Muted);Button(TEXT("返回"),80,592,200,TEXT("back"));
   }else if(P->MenuPage==2){
    Text(TEXT("鱼获手册"),80,202,28,White);Text(TEXT("最近 8 次上鱼 / 本地保留最近 100 条记录"),400,209,17,Muted);
    if(P->SaveData->Journal.IsEmpty())Text(TEXT("还没有鱼获。到沉木附近试一试抽停米诺。"),80,295,22,Muted);
@@ -46,9 +49,9 @@ void ALureHUD::DrawHUD(){
    Button(TEXT("返回"),80,596,200,TEXT("back"));
   }else{
    Text(TEXT("操作指南"),80,202,28,White);
-   const TCHAR* H[]={TEXT("W A S D 移动，鼠标瞄准；按住左键蓄力，松开抛投。"),TEXT("按住右键收线，空格抽饵；试着收、停、抽，让鱼追上拟饵。"),TEXT("咬口时按空格刺鱼：计时标记进入亮区，挂钩更稳。"),TEXT("搏鱼时鼠标或 A / D 左右压竿；W / S 抬高或压低竿尖，跟随提示反制。"),TEXT("鱼发力时松开右键；滚轮调整泄力，回气时再收线。"),TEXT("鱼到岸边后，在 4 秒内按空格抄鱼；R 放流，V 查看鱼获。"),TEXT("Tab 换拟饵；V 水下观察；Esc 菜单。上鱼后自动保存。")};
+   const TCHAR* H[]={TEXT("W A S D 移动，鼠标瞄准；按住左键蓄力，松开抛投。"),TEXT("按住右键收线，空格抽饵；试着收、停、抽，观察水面与竿线。"),TEXT("线突然绷紧、竿尖顿下时，按空格刺鱼；听泄力声判断鱼是否在出线。"),TEXT("搏鱼时鼠标或 A / D 左右压竿；W / S 抬高或压低竿尖。"),TEXT("鱼线吃紧时松开右键，滚轮调松泄力；竿线放缓后再收线。"),TEXT("鱼到岸边后及时按空格抄鱼；R 放流，V 查看鱼获。"),TEXT("Tab 换拟饵；Esc 菜单。需要水下观察或提示时，在设置开启钓鱼辅助。")};
    for(int i=0;i<7;++i)Text(H[i],80,260+i*39,20,i%2?Muted:White);
-   Button(TEXT("返回"),80,592,200,TEXT("back"));
+   Button(TEXT("返回"),80,592,200,TEXT("back"));Button(TEXT("钓鱼辅助设置"),304,592,250,TEXT("settings"));
   }return;
  }
  Rect(24,24,310,88,FLinearColor(.012f,.025f,.024f,.78f));
@@ -57,7 +60,7 @@ void ALureHUD::DrawHUD(){
 
  // Phase prompts own the headline while the player must strike, net, or review a catch.
  const bool bOwnsHeadline=P->Phase==EFishingPhase::Bite||P->Phase==EFishingPhase::Landing||P->Phase==EFishingPhase::Landed;
- if(P->EventLife>0&&!P->EventTitle.IsEmpty()&&!bOwnsHeadline){
+ if(P->EventLife>0&&!P->EventTitle.IsEmpty()&&!bOwnsHeadline&&(bAssist||P->Phase!=EFishingPhase::Fighting)){
   const float Remaining=FMath::Clamp(P->EventLife/FMath::Max(.01f,P->EventDuration),0.f,1.f);
   const float Fade=FMath::Min(1.f,P->EventLife/.3f);
   FLinearColor EventColor=P->Phase==EFishingPhase::Fighting&&P->Fight.Move!=EFightMove::Recover?Amber:Accent;
@@ -65,25 +68,25 @@ void ALureHUD::DrawHUD(){
   FLinearColor EventWhite=White;EventWhite.A=Fade;EventColor.A=Fade;
   Rect(452,30,514,88,FLinearColor(.012f,.025f,.024f,.83f*Fade));Rect(452,30,3,88,EventColor);
   Text(P->EventTitle,473,40,25,EventColor);Text(P->EventDetail,473,77,16,EventWhite);
-  Rect(473,109,470*Remaining,2,EventColor);
+  if(bAssist)Rect(473,109,470*Remaining,2,EventColor);
  }
 
- if(P->Phase!=EFishingPhase::Fighting&&P->Phase!=EFishingPhase::Landing&&P->Phase!=EFishingPhase::Landed){
+ if(P->Phase!=EFishingPhase::Fighting&&P->Phase!=EFishingPhase::Landing&&P->Phase!=EFishingPhase::Landed&&P->Phase!=EFishingPhase::Releasing){
   Rect(24,561,465,135,FLinearColor(.012f,.025f,.024f,.84f));
   Text(P->LureName(),42,573,21,Accent);
-  Text(FString::Printf(TEXT("距离 %.1f m    水深 %.1f m    泄力 %.0f%%"),P->DistanceMetres(),P->Depth,P->Drag*100),42,606,16,White);
+  Text(bAssist?FString::Printf(TEXT("距离 %.1f m    水深 %.1f m    泄力 %.0f%%"),P->DistanceMetres(),P->Depth,P->Drag*100):FString::Printf(TEXT("滚轮调节泄力  %.0f%%  ·  留意竿尖与鱼线"),P->Drag*100),42,606,16,White);
   Text(TEXT("左键 抛投  /  右键 收线  /  空格 抽饵与刺鱼"),42,641,15,Muted);
-  Text(TEXT("Tab 换饵  ·  V 观察  ·  R 收竿"),42,670,14,Muted);
+  Text(bAssist?TEXT("Tab 换饵  ·  V 水下观察  ·  R 收竿"):TEXT("Tab 换饵  ·  R 收竿  ·  Esc 设置 / 辅助"),42,670,14,Muted);
  }
  if(P->Phase==EFishingPhase::Ready&&P->EventLife<=0)Text(P->Notice,42,521,17,White);
  if(P->Phase==EFishingPhase::Charging){
   Text(TEXT("松开左键，送出拟饵"),490,446,21,White);
   Meter(490,484,300,P->Charge,Accent);Text(FString::Printf(TEXT("抛投力度  %.0f%%"),P->Charge*100),490,501,15,Muted);
  }
- if(P->Phase==EFishingPhase::Retrieving){
+ if(bAssist&&P->Phase==EFishingPhase::Retrieving){
   Text(P->FishStatus(),42,488,20,White);Text(P->CadenceHint(),42,526,16,Accent);
  }
- if(P->Phase==EFishingPhase::Bite){
+ if(bAssist&&P->Phase==EFishingPhase::Bite){
   const float Progress=P->BiteProgress();
   const bool bSweetSpot=Progress>=.2f&&Progress<=.7f;
   const FLinearColor BiteColor=Progress>.7f?Danger:Amber;
@@ -95,7 +98,7 @@ void ALureHUD::DrawHUD(){
   Rect(X,Y,W,10,FLinearColor(.10f,.15f,.12f));Rect(X+W*.3f,Y,W*.5f,10,FLinearColor(.66f,.43f,.13f));
   Rect(X,Y+3,W*(1.f-Progress),4,BiteColor);Rect(Marker-1,Y-5,3,20,White);
  }
- if(P->Phase==EFishingPhase::Fighting){
+ if(bAssist&&P->Phase==EFishingPhase::Fighting){
   const FFishingFight& F=P->Fight;
   const bool bTelegraph=F.IsTelegraphing(),bSurge=F.IsSurging(),bRecover=F.Move==EFightMove::Recover;
   const FLinearColor MoveColor=bRecover?Accent:Amber;
@@ -130,14 +133,26 @@ void ALureHUD::DrawHUD(){
   Text(bRecover?TEXT("按住右键收线，抓住回气窗口"):bSurge?TEXT("松开右键卸力，按提示控制竿尖"):F.Move==EFightMove::Jump?TEXT("松开右键，压低竿尖应对洗鳃"):TEXT("保持侧向压竿，稳住鱼线张力"),42,639,16,MoveColor);
   Text(FString::Printf(TEXT("鼠标 / A D / W S 控竿  ·  滚轮泄力 %.0f%%"),P->Drag*100),42,671,14,Muted);
  }
+ if(!bAssist&&P->Phase==EFishingPhase::Fighting){
+  const FFishingFight& F=P->Fight;
+  const bool bTooTight=F.Tension>.88f,bTooLoose=F.Tension<.20f;
+  const FLinearColor SafetyColor=bTooTight?Danger:bTooLoose?Amber:Accent;
+  Rect(24,536,465,160,FLinearColor(.012f,.025f,.024f,.86f));Rect(24,536,3,160,SafetyColor);
+  Text(TEXT("稳住竿线"),42,549,23,White);
+  Text(bTooTight?TEXT("鱼线吃紧 · 松开右键，调松泄力"):bTooLoose?TEXT("鱼线偏松 · 轻收线，保持接触"):TEXT("看竿尖和线的走向，听泄力声"),42,584,17,SafetyColor);
+  if(F.LineCondition<.55f)Text(TEXT("鱼线已受损，避免继续硬拉"),42,612,14,F.LineCondition<.25f?Danger:Amber);
+  else Text(TEXT("鱼往一侧拉时向另一侧压竿；出线时先卸力"),42,612,14,Muted);
+  Text(TEXT("右键收线  ·  鼠标 / A D / W S 控竿"),42,640,15,White);
+  Text(FString::Printf(TEXT("滚轮泄力 %.0f%%  ·  Esc 设置 / 辅助"),P->Drag*100),42,670,14,Muted);
+ }
  if(P->Phase==EFishingPhase::Landing){
   const float Progress=P->LandingProgress(),Seconds=4.f*(1.f-Progress);
-  const FLinearColor NetColor=Seconds<1.f?Danger:Amber;
-  Rect(438,152,404,160,FLinearColor(.012f,.025f,.024f,.91f));Rect(438,152,3,160,NetColor);
+  const FLinearColor NetColor=bAssist&&Seconds<1.f?Danger:Amber;
+  Rect(438,152,404,bAssist?160:140,FLinearColor(.012f,.025f,.024f,.91f));Rect(438,152,3,bAssist?160:140,NetColor);
   Text(TEXT("鱼已到岸边  /  抓住最后一步"),460,166,16,NetColor);
   Text(TEXT("空格  抄鱼入网"),460,196,34,White);
-  Text(FString::Printf(TEXT("抄网窗口  %.1f 秒"),Seconds),460,252,18,NetColor);
-  Meter(460,292,360,1.f-Progress,NetColor);
+  Text(bAssist?FString::Printf(TEXT("抄网窗口  %.1f 秒"),Seconds):TEXT("趁鱼靠岸，及时入网"),460,252,18,NetColor);
+  if(bAssist)Meter(460,292,360,1.f-Progress,NetColor);
  }
  if(P->Phase==EFishingPhase::Landed){
   Rect(24,157,444,259,FLinearColor(.012f,.025f,.024f,.93f));Rect(24,157,4,259,Accent);
@@ -150,6 +165,10 @@ void ALureHUD::DrawHUD(){
   if(!Milestone.IsEmpty())Text(Milestone,46,346,16,Amber);
   Text(TEXT("R 放流    ·    V 鱼获近景"),46,382,18,White);
  }
- if(!P->bObserve&&P->Phase!=EFishingPhase::Landed){Rect(638,356,4,8,FLinearColor(.8f,.9f,.8f,.65f));Rect(636,358,8,4,FLinearColor(.8f,.9f,.8f,.65f));}
+ if(P->Phase==EFishingPhase::Releasing){
+  Rect(410,600,460,70,FLinearColor(.012f,.025f,.024f,.85f));
+  Text(TEXT("轻放回水中，让它游走…"),441,622,23,Accent);
+ }
+ if(!P->bObserve&&P->Phase!=EFishingPhase::Landed&&P->Phase!=EFishingPhase::Releasing){Rect(638,356,4,8,FLinearColor(.8f,.9f,.8f,.65f));Rect(636,358,8,4,FLinearColor(.8f,.9f,.8f,.65f));}
 }
 
