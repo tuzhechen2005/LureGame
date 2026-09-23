@@ -1,0 +1,44 @@
+{
+  "destination": "/Game/Fishing/Perch",
+  "tail_offset_cm": [
+    -11.829231262207031,
+    5.960464477539063e-08,
+    0.0
+  ],
+  "meshes": [
+    {
+      "name": "SM_PerchNaturalBody",
+      "bounds_min": [
+        -11.829231262207031,
+        -5.750571250915527,
+        -8.374796867370605
+      ],
+      "bounds_max": [
+        20.0,
+        5.750571250915527,
+        11.11535358428955
+      ],
+      "materials": [
+        "M_PerchNatural_Skin",
+        "M_PerchNatural_EyeInner",
+        "M_PerchNatural_EyeOuter"
+      ]
+    },
+    {
+      "name": "SM_PerchNaturalTail",
+      "bounds_min": [
+        -8.170768737792969,
+        -0.6563940644264221,
+        -5.365396022796631
+      ],
+      "bounds_max": [
+        0.0,
+        0.6563952565193176,
+        3.680880546569824
+      ],
+      "materials": [
+        "M_PerchNatural_Skin"
+      ]
+    }
+  ]
+}

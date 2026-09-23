@@ -245,7 +245,11 @@ void ALurePawn::Tick(float Dt) {
  Lure->SetWorldLocation(LurePosition);
  Lure->SetWorldRotation((GetActorLocation()-LurePosition).Rotation());
  if(bObserve && ActiveFish){
-  FVector Focus=ActiveFish->GetActorLocation();FVector Eye=Focus+FVector(-90,145,55);if(Phase!=EFishingPhase::Landed)Eye.Z=FMath::Min(Focus.Z+25,-30.f);
+  FVector Focus=ActiveFish->GetActorLocation();FVector Eye;
+  if(Phase==EFishingPhase::Landed){
+   Eye=Focus+CatchDisplayTransform.TransformVectorNoScale(FVector(0,58,58));
+   Focus-=CatchDisplayTransform.TransformVectorNoScale(FVector(12,0,0));
+  }else{Eye=Focus+FVector(-90,145,55);Eye.Z=FMath::Min(Focus.Z+25,-30.f);}
   Camera->SetWorldLocation(Eye);Camera->SetWorldRotation((Focus-Eye).Rotation());
  }else if(bObserve){FVector Eye=LurePosition+FVector(-120,-180,45);Camera->SetWorldLocation(Eye);Camera->SetWorldRotation((LurePosition-Eye).Rotation());}
  for(int i=0;i<Line.Num();++i){

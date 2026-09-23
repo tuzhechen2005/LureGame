@@ -129,9 +129,8 @@ for entry in METADATA['meshes']:
     assigned = []
     for index, slot in enumerate(mesh.static_materials):
         key = str(slot.material_slot_name)
-        imported_key = str(slot.imported_material_slot_name)
-        material_name = key if key in materials else imported_key
-        assert material_name in materials, f'Unknown material slot {key}/{imported_key}'
+        material_name = key if key in materials else METADATA['materials'].get(key)
+        assert material_name in materials, f'Unknown material slot {key}'
         mesh.set_material(index, materials[material_name])
         assigned.append(material_name)
     # Axis/unit checks stop immediately if the importer silently changes conventions.

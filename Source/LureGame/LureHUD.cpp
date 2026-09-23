@@ -32,7 +32,7 @@ void ALureHUD::DrawHUD(){
    Text(TEXT("4 种淡水鱼 · 5 种拟饵 · 3 处岸钓标点"),560,398,20,White);
    Text(FString::Printf(TEXT("累计上鱼 %d 尾  |  所有鱼获均可放流"),P->Catches),560,439,18,Muted);
    Text(FString::Printf(TEXT("个人纪录  %.2f kg"),P->SaveData->BestWeight),560,478,18,Accent);
-   Text(TEXT("Windows 单机体验  ·  本地自动保存"),80,624,15,Muted);
+   Text(TEXT("岸钓更新 2026.09.22  ·  本地自动保存"),80,624,15,Muted);
   }else if(P->MenuPage==1){
    Text(TEXT("环境与设置"),80,204,28,White);
    Button(TEXT("天气：")+P->WeatherName(),80,260,490,TEXT("weather"));Button(TEXT("时段：")+P->TimeName(),80,316,490,TEXT("time"));Button(TEXT("标点：")+P->SpotName()+TEXT("（切换时收竿）"),80,372,490,TEXT("spot"));

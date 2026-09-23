@@ -98,8 +98,8 @@ void ALurePawn::StartCatchPresentation(){
  if(!ActiveFish)return;
  CatchWaterPosition=LurePosition;CatchWaterPosition.Z=-8;
  const FRotator View=GetControlRotation();const FRotationMatrix Basis(View);
- const FVector Location=GetActorLocation()+FVector(0,0,170)+Basis.GetUnitAxis(EAxis::X)*108.f+
-  Basis.GetUnitAxis(EAxis::Y)*32.f-Basis.GetUnitAxis(EAxis::Z)*48.f;
+ const FVector Location=GetActorLocation()+FVector(0,0,170)+Basis.GetUnitAxis(EAxis::X)*135.f+
+  Basis.GetUnitAxis(EAxis::Y)*32.f-Basis.GetUnitAxis(EAxis::Z)*20.f;
  const float Length=ActiveFish->Body->GetStaticMesh()?ActiveFish->Body->GetStaticMesh()->GetBoundingBox().GetSize().X*ActiveFish->SizeFactor+12:55.f;
  CatchDisplayTransform=FTransform(FRotator(0,View.Yaw+90.f,0),Location,FVector(FMath::Clamp(Length/64.f,.85f,1.7f)));
  UpdateCatchPresentation(0);
@@ -121,7 +121,12 @@ void ALurePawn::UpdateCatchPresentation(float Dt){
  FTransform Transform=CatchDisplayTransform;
  const FVector Water=CatchWaterPosition+FVector(0,0,12);
  Transform.SetLocation(FMath::Lerp(Water,CatchDisplayTransform.GetLocation(),Releasing?1.f-T:T));
- if(CatchNet)CatchNet->SetWorldTransform(Transform);
+ if(CatchNet){
+  FTransform NetTransform=Transform;
+  // FBX's converted handle extends along -Y; point it back to the angler.
+  NetTransform.SetRotation(Transform.GetRotation()*FRotator(0,180,0).Quaternion());
+  CatchNet->SetWorldTransform(NetTransform);
+ }
  // The fish lies on its side inside the rubber basket, with its lowest body
  // surface touching the cupped mesh. Camera inspection never moves the prop.
  ActiveFish->Behavior=EFishBehavior::Hooked;
@@ -151,6 +156,7 @@ void ALurePawn::RunShoreTest(){
  Check(Fish.Num()>=18,TEXT("shore session uses live habitat population"));
  ActiveFish=Fish.Num()>1?Fish[1]:nullptr;
  if(ActiveFish){
+  Check(ActiveFish->Species==1 && ActiveFish->Body->GetStaticMesh() && ActiveFish->Body->GetStaticMesh()->GetName()==TEXT("SM_PerchNaturalBody"),TEXT("textured perch asset is available at runtime"));
   LurePosition=FVector(600,0,-12);SetPhase(EFishingPhase::Landed);StartCatchPresentation();PhaseTime=2;UpdateCatchPresentation(0);
   Check(CatchNet->IsVisible() && ActiveFish->GetActorLocation().Z<CatchNet->GetComponentLocation().Z,TEXT("landed fish rests inside the net, below its rim"));
   const FVector Before=ActiveFish->GetActorLocation();ToggleObserve();UpdateCatchPresentation(0);
